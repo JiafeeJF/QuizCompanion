@@ -1,0 +1,17 @@
+{
+  "appId": "top.wakaibg5.wlbd",
+  "appName": "物联宝典",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#ffffff"
+    }
+  }
+}

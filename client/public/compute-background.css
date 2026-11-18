@@ -1,0 +1,12 @@
+.compute-background{position:fixed;inset:0;pointer-events:none;z-index:0;background:#060809;overflow:hidden}
+.compute-background canvas{display:block;width:100%;height:100%}
+.download-engine.download-engine{isolation:isolate;position:relative;background:#060809;color:#f5f5f7}
+.download-engine>.compute-background{z-index:-1}
+.download-engine .text-ink,.download-engine .v,.download-engine .more{color:#f5f5f7}
+.download-engine .text-sub,.download-engine .sub,.download-engine .notes{color:#b9c2bf}
+.download-engine .text-faint,.download-engine .k,.download-engine .size,.download-engine .tip{color:#a2adaa}
+.download-engine .border-line,.download-engine .row,.download-engine .notes-title{border-color:#ffffff20}
+.download-engine button.bg-ink,.download-engine .btn{background:#e9f1ed;color:#17221c}
+.download-engine button:focus-visible{outline:2px solid #afd7be;outline-offset:5px}
+.compute-background:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#06080999,transparent 75%);pointer-events:none}
+@media(max-width:700px){.compute-background canvas{opacity:.6}}

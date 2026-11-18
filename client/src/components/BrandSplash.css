@@ -1,0 +1,9 @@
+.brand-splash{position:fixed;inset:0;z-index:50;isolation:isolate;overflow:hidden;background:#fbfbfc;color:#292d30;pointer-events:auto;contain:strict}
+.brand-splash .generative-background{z-index:-2}
+.brand-splash__wash{position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at center,rgba(251,251,252,.55),rgba(251,251,252,.08) 72%);pointer-events:none}
+.brand-splash__content{position:absolute;left:50%;top:var(--brand-splash-anchor-y,50%);width:100%;padding:0 24px;text-align:center;transform:translate3d(-50%,-52%,0);backface-visibility:hidden;contain:layout paint style}
+.brand-splash__logo{display:block;width:clamp(108px,28vw,148px);height:auto;margin:0 auto 28px;overflow:visible}
+.brand-splash h1{margin:0;font-size:28px;line-height:1.35;font-weight:650;letter-spacing:.16em;padding-left:.16em}
+.brand-splash p{margin:12px 0 0;font-size:12px;line-height:1.6;letter-spacing:.14em;color:#858b8e}
+@media(prefers-reduced-motion:reduce){.brand-splash__content{transform:none}}
+@media(prefers-reduced-motion:reduce){.brand-splash__content{transform:translate3d(-50%,-52%,0)}}

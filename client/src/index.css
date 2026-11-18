@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --wlbd-page-bg: #f5f5f7;
+  --wlbd-surface: rgba(255, 255, 255, 0.92);
+  --wlbd-surface-muted: rgba(120, 120, 128, 0.08);
+  --wlbd-border: rgba(60, 60, 67, 0.12);
+  --wlbd-glass: rgba(255, 255, 255, 0.78);
+  --wlbd-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.045);
+  --wlbd-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* ===== 全局安全区变量（iPhone 刘海/灵动岛 + Android 全屏 WebView）=====
+   * constant() 先行兼容旧版 iOS 11.0-11.2，env() 覆盖新版；
+   * PC 浏览器 inset 恒为 0，无额外空白。 */
+  --safe-area-top: 0px;
+  --safe-area-bottom: 0px;
+  --safe-area-left: 0px;
+  --safe-area-right: 0px;
+}
+@supports (padding-top: constant(safe-area-inset-top)) {
+  :root {
+    --safe-area-top: constant(safe-area-inset-top);
+    --safe-area-bottom: constant(safe-area-inset-bottom);
+    --safe-area-left: constant(safe-area-inset-left);
+    --safe-area-right: constant(safe-area-inset-right);
+  }
+}
+@supports (padding-top: env(safe-area-inset-top)) {
+  :root {
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+  }
+}
+
+/* ========== 路由切换防左右晃动：全局基础 ========== */
+
+/* 1) 预留垂直滚动条占位：有/无滚动条时视口宽度不变，居中容器不再左右偏移。
+ *    支持的浏览器只预留占位、不强制显示滚动条；不支持的浏览器降级为常显纵向滚动条。 */
+html {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
+}
+
+/* 2) 掐断横向溢出：任何子元素超宽都不允许撑出横向滚动条 / 顶动 fixed 导航。 */
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+@supports not (overflow: clip) {
+  html,
+  body,
+  #root {
+    overflow-x: hidden;
+  }
+}
+
+html, body {
+  background: var(--wlbd-page-bg);
+  color: #1D1D1F;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+  overscroll-behavior-y: none;
+}
+
+button, a, input, textarea, select {
+  touch-action: manipulation;
+}
+
+/* iOS Safari/PWA 会在可输入控件小于 16px 时强制放大页面。仅在 WebKit iOS
+ * 环境提高控件的实际字号，其他平台继续使用原有视觉规格。 */
+@supports (-webkit-touch-callout: none) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid rgba(29, 29, 31, 0.42);
+  outline-offset: 3px;
+}
+
+#root { min-height: 100vh; }
+
+/* 3) 媒体与长文本兜底：图片/表格/代码不撑宽，长单词/链接允许断行。 */
+img, svg, video, canvas {
+  max-width: 100%;
+}
+p, h1, h2, h3, h4, h5, h6, span, a, li, td, th {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@layer components {
+  /* 卡片 */
+  .card {
+    @apply rounded-2xl bg-white;
+    border: 1px solid var(--wlbd-border);
+    box-shadow: var(--wlbd-shadow-card);
+    transition: transform 180ms var(--wlbd-spring), box-shadow 180ms ease, border-color 180ms ease;
+  }
+  /* 全屏安全区容器：给 fixed 全屏元素用，背景与内容自然融合无色块 */
+  .safefullscreen {
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+  }
+  /* 主按钮（深色，Apple 式克制） */
+  .btn-primary {
+    @apply flex min-h-11 items-center justify-center rounded-2xl bg-ink px-5 py-3 text-[15px] font-semibold text-white transition disabled:opacity-40;
+    transition-timing-function: var(--wlbd-spring);
+  }
+  .btn-secondary {
+    @apply flex min-h-11 items-center justify-center rounded-2xl bg-black/[0.04] px-5 py-3 text-[15px] font-semibold text-ink transition disabled:opacity-40;
+    transition-timing-function: var(--wlbd-spring);
+  }
+  .btn-ghost {
+    @apply flex min-h-11 items-center justify-center rounded-2xl px-4 py-2.5 text-[14px] font-medium text-sub transition;
+    transition-timing-function: var(--wlbd-spring);
+  }
+  .input-field {
+    @apply min-h-11 w-full rounded-2xl border border-line bg-white px-4 py-3 text-[15px] text-ink outline-none transition placeholder:text-faint focus:border-ink/40;
+  }
+  .label {
+    @apply mb-1.5 block text-[13px] font-medium text-sub;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-[12px] font-medium;
+  }
+  .section-title {
+    @apply text-[17px] font-bold text-ink;
+  }
+}
+
+.card:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-ghost:active {
+  transform: scale(0.985);
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.wlbd-glass {
+  background: var(--wlbd-glass);
+  border-color: var(--wlbd-border);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+.wlbd-segment { background: rgba(120, 120, 128, 0.08); -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px); }
+.wlbd-segment-slider { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(60, 60, 67, 0.08); border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); pointer-events: none; transition: transform 260ms var(--wlbd-spring); }
+.wlbd-nav-slider { pointer-events: none; transition: transform 260ms var(--wlbd-spring); }
+.wlbd-fixed-tabs { left: 50%; width: 100%; max-width: 42rem; padding: 12px 16px 0; transform: translateX(-50%); pointer-events: none; }
+.wlbd-fixed-tabs > * { pointer-events: auto; }
+
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.skeleton { border-radius: 1rem; background: rgba(0, 0, 0, 0.06); animation: wlbd-skeleton-pulse 1.2s ease-in-out infinite; }
+@keyframes wlbd-skeleton-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none !important; opacity: 0.7; } }
+
+/* 全局加载：三点依次呼吸 + 容器淡入（仅 PageLoading 使用，非遮罩，不盖导航） */
+@keyframes wlbd-loader-dot {
+  0%, 100% { opacity: 0.25; transform: translateY(0) scale(0.85); }
+  50% { opacity: 1; transform: translateY(-4px) scale(1); }
+}
+.wlbd-loader-dot { animation: wlbd-loader-dot 1.2s ease-in-out infinite; will-change: transform, opacity; }
+.wlbd-loader-dot.d2 { animation-delay: 0.15s; }
+.wlbd-loader-dot.d3 { animation-delay: 0.3s; }
+@keyframes wlbd-loader-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.wlbd-loader-fade { animation: wlbd-loader-fade 0.25s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .wlbd-loader-dot, .wlbd-loader-fade { animation: none !important; }
+  .wlbd-loader-dot { opacity: 0.6 !important; transform: none !important; }
+}

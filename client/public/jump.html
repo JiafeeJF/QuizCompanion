@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>正在打开物联宝典…</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #fff; color: #1d1d1f; min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .wrap { text-align: center; max-width: 340px; width: 100%; }
+  .icon { width: 72px; height: 72px; border-radius: 18px; background: #1d1d1f; color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+  h1 { font-size: 17px; font-weight: 700; margin-top: 16px; }
+  .sub { font-size: 13px; color: #86868b; margin-top: 6px; min-height: 20px; line-height: 1.6; }
+  .spin { width: 22px; height: 22px; margin: 18px auto 0; border: 2.5px solid #e5e5ea; border-top-color: #1d1d1f; border-radius: 50%; animation: sp 0.8s linear infinite; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  .btn { display: none; width: 100%; margin-top: 20px; background: #1d1d1f; color: #fff; border: none; border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; text-align: center; text-decoration: none; }
+  .btn:active { transform: scale(.99); }
+  .btn.ghost { background: #f2f2f7; color: #1d1d1f; margin-top: 10px; }
+  .link { display: none; margin-top: 14px; font-size: 13px; color: #86868b; text-decoration: none; }
+  /* 微信/QQ 内置浏览器拦截外部唤起：右上角引导遮罩 */
+  .guide { position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 99; display: none; padding: 16px; }
+  .guide-arrow { position: absolute; right: 18px; top: 10px; color: #fff; font-size: 13px; line-height: 1.5; text-align: right; }
+  .guide-arrow b { font-size: 26px; display: block; }
+  .guide-txt { color: #fff; margin-top: 45%; text-align: center; font-size: 15px; line-height: 2; padding: 0 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="icon">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+  </div>
+  <h1>物联宝典</h1>
+  <p class="sub" id="tip">正在打开…</p>
+  <div class="spin" id="spin"></div>
+  <a class="btn" id="openApp" href="#">打开物联宝典 APP</a>
+  <a class="btn ghost" id="openWebBtn" href="#">进入网页版</a>
+  <a class="link" id="openWeb" href="#">没反应？点此进入网页版 &gt;</a>
+</div>
+<div class="guide" id="guide">
+  <div class="guide-arrow"><b>↗</b>点击右上角菜单</div>
+  <div class="guide-txt">当前应用内浏览器禁止直接打开外部 APP<br/>请选择「在浏览器打开」即可自动进入</div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var tip = document.getElementById('tip');
+  var spin = document.getElementById('spin');
+  var btnApp = document.getElementById('openApp');
+  var btnWeb = document.getElementById('openWebBtn');
+  var linkWeb = document.getElementById('openWeb');
+  var guide = document.getElementById('guide');
+
+  var WEB_BASE = 'https://iot.wakaibg5.top';
+  var PKG = 'top.wakaibg5.wlbd';
+  // 唤起后等待时长：覆盖 scheme 拉起 + intent 弹框 + 系统选择器耗时（邮箱 webview 偏慢）
+  var FALLBACK_MS = 2600;
+
+  var ua = navigator.userAgent || '';
+  // 微信/QQ/企业微信/钉钉内置浏览器：拦截 intent 与自定义 scheme，必须引导到系统浏览器。
+  // 注意：正则里不再写 QQ\/ 这类带斜杠的写法，避免 / 字面量提前闭合导致整页 JS 解析失败。
+  var BLOCKED = /MicroMessenger|MQQBrowser|QQBrowser|QQ|wxwork|DingTalk/i.test(ua);
+  var isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+  /**
+   * 跳转类型注册表：新增类型只加一行。
+   * jumpPrefix: jump 域路径前缀；scheme: wlbd:// 目标模板；web: 网页版目标模板；label: 页面提示。
+   */
+  var ROUTES = {
+    exam:  { jumpPrefix: '/exam/',  scheme: 'wlbd://exam/{p}',  web: '/exams/{p}',  label: '正在打开考试…',  appLabel: '在 APP 中打开考试' },
+    share: { jumpPrefix: '/share/', scheme: 'wlbd://share/{p}', web: '/share/{p}',  label: '正在打开分享…',  appLabel: '在 APP 中打开分享' },
+  };
+  var PARAM_RE = /^[A-Za-z0-9_-]{6,64}$/;
+
+  function parseTarget() {
+    var path = location.pathname || '/';
+    for (var key in ROUTES) {
+      var r = ROUTES[key];
+      if (path.indexOf(r.jumpPrefix) === 0) {
+        var param = path.slice(r.jumpPrefix.length).split('/')[0];
+        if (PARAM_RE.test(param)) return { type: key, route: r, param: param };
+        return { invalid: true };
+      }
+    }
+    return { invalid: true };
+  }
+
+  function showDead(msg, linkText, linkHref) {
+    tip.textContent = msg;
+    spin.style.display = 'none';
+    linkWeb.style.display = 'inline';
+    linkWeb.textContent = linkText;
+    linkWeb.href = linkHref;
+    linkWeb.setAttribute('data-dead', '1');
+    document.title = '链接失效 - 物联宝典';
+  }
+
+  var t = parseTarget();
+  if (t.invalid) {
+    showDead('链接无效或已过期', '进入物联宝典首页 >', WEB_BASE + '/');
+    return;
+  }
+
+  var webUrl = WEB_BASE + t.route.web.replace('{p}', t.param);
+  var schemeUrl = t.route.scheme.replace('{p}', t.param);
+  document.title = t.route.label.replace('…', '') + ' - 物联宝典';
+  linkWeb.href = webUrl;
+  btnWeb.href = webUrl;
+  btnApp.textContent = t.route.appLabel;
+  btnApp.href = schemeUrl;
+
+  var jumped = false;
+  var hidden = false;
+  var timer = null;
+
+  function goWeb() {
+    if (jumped || hidden) return;
+    // APP 已拉起时标签页通常切后台/失焦：仍可见 = 没开成，才进网页兜底
+    if (document.visibilityState === 'visible') {
+      jumped = true;
+      tip.textContent = '正在进入网页版…';
+      location.replace(webUrl);
+    }
+  }
+  function showManual() {
+    if (jumped || hidden) return;
+    spin.style.display = 'none';
+    btnApp.style.display = 'block';
+    btnWeb.style.display = 'block';
+    linkWeb.style.display = 'none';
+    tip.textContent = '点击下方按钮继续';
+  }
+  function showGuide() {
+    spin.style.display = 'none';
+    btnApp.style.display = 'none';
+    btnWeb.style.display = 'none';
+    linkWeb.style.display = 'none';
+    guide.style.display = 'block';
+    tip.innerHTML = '检测到你在应用内浏览器打开<br/>请点右上角「···」选择浏览器打开';
+    document.title = '请在浏览器中打开 - 物联宝典';
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { hidden = true; if (timer) clearTimeout(timer); }
+  });
+  window.addEventListener('pagehide', function () { hidden = true; if (timer) clearTimeout(timer); });
+
+  // 手动按钮统一走 wake()（按浏览器能力选 intent/scheme），不再直接跟随 href，
+  // 否则 Chrome 下点按钮只会走到 wlbd:// 而绕开带 fallback 的 intent://
+  btnApp.onclick = function (e) { e.preventDefault(); wake(); };
+  linkWeb.onclick = function (e) {
+    // 失效态"进入首页"走正常跳转；唤起流程中的"进入网页版"走兜底逻辑
+    if (linkWeb.getAttribute('data-dead') === '1') return;
+    e.preventDefault(); goWeb();
+  };
+  guide.onclick = function () { guide.style.display = 'none'; showManual(); };
+
+  function isChromeIntentCapable() {
+    return !isIOS && /Chrome\/\d+/.test(ua)
+      && !/Edge\/|Edg\/|OPPO|HeyTap|Vivo|MiuiBrowser|HuaweiBrowser|Quark|UCBrowser|KMail|WhatsApp/i.test(ua)
+      && !BLOCKED;
+  }
+
+  /**
+   * 唤起策略（成功即停）：
+   * 0) 微信/QQ 等拦截环境 → 直接出右上角引导，不做无谓尝试
+   * 1) Chrome：intent://（package + S.browser_fallback_url），已装直开、未装自动进网页
+   * 2) 其他环境：location.href = wlbd:// 直跳
+   * 3) FALLBACK_MS 未离开前台 → 网页兜底；再久一点 → 出手动按钮
+   */
+  function wake() {
+    if (BLOCKED) { showGuide(); return; }
+    if (isChromeIntentCapable()) {
+      location.href = 'intent://' + t.route.scheme.replace('wlbd://', '') +
+        '#Intent;scheme=wlbd;package=' + PKG +
+        ';S.browser_fallback_url=' + encodeURIComponent(webUrl) + ';end';
+    } else {
+      location.href = schemeUrl;
+    }
+    timer = setTimeout(goWeb, FALLBACK_MS);
+    setTimeout(function () { if (!jumped && !hidden) showManual(); }, FALLBACK_MS + 1800);
+  }
+
+  /**
+   * 先调后端校验有效性（公开接口）：
+   * ok → 唤起；expired/gone → 显示链接失效不再唤起；超时/异常 → 当作 ok（不断链路，端内自有二次校验）
+   */
+  try {
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var to = setTimeout(function () { if (ctrl) try { ctrl.abort(); } catch (e) {} }, 5000);
+    fetch('/api/jump/resolve?type=' + encodeURIComponent(t.type) + '&param=' + encodeURIComponent(t.param),
+      { signal: ctrl ? ctrl.signal : undefined, credentials: 'omit' })
+      .then(function (r) { clearTimeout(to); return r.json(); })
+      .then(function (d) {
+        if (!d || d.status === 'ok') { wake(); return; }
+        var msg = d.reason || '链接已失效';
+        if (d.title) msg = '《' + d.title + '》' + msg;
+        showDead(msg, '进入物联宝典首页 >', WEB_BASE + '/');
+      })
+      .catch(function () { clearTimeout(to); wake(); });
+  } catch (e) { wake(); }
+})();
+</script>
+</body>
+</html>

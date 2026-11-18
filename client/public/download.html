@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>物联宝典 · APP 下载</title>
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="stylesheet" href="/generative-background.css" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #fbfbfc; color: #1d1d1f; min-height: 100vh; }
+  .page { max-width: 640px; margin: 0 auto; padding: 72px 24px 96px; }
+  .app-icon { width: 64px; height: 64px; border-radius: 18px; object-fit: cover; aspect-ratio: 1 / 1; display: block; background: #f5f5f7; border: 1px solid rgba(0,0,0,.06); }
+  h1 { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; margin-top: 24px; }
+  .sub { font-size: 15px; color: #6e6e73; margin-top: 8px; line-height: 1.6; }
+  .ver-line { margin-top: 40px; display: flex; align-items: baseline; gap: 12px; }
+  .ver { font-size: 17px; font-weight: 600; }
+  .size { font-size: 13px; color: #aeaeb2; font-variant-numeric: tabular-nums; }
+  .info { margin-top: 24px; font-size: 14px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; }
+  .row + .row { border-top: 1px solid #ececee; }
+  .k { color: #aeaeb2; }
+  .v { color: #1d1d1f; font-variant-numeric: tabular-nums; }
+  .notes-title { margin-top: 36px; padding-top: 32px; border-top: 1px solid #ececee; font-size: 15px; font-weight: 600; }
+  .notes { margin-top: 12px; font-size: 14px; line-height: 1.9; color: #515154; white-space: pre-wrap; overflow: hidden; max-height: 1600px; transition: max-height .5s cubic-bezier(.22,1,.36,1); }
+  .notes-clamp { max-height: 7.6em; }
+  .more { margin-top: 8px; font-size: 13px; font-weight: 500; color: #1d1d1f; text-decoration: underline; text-underline-offset: 4px; background: none; border: none; cursor: pointer; padding: 0; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; margin-top: 48px; background: #1d1d1f; color: #fff; border: none; border-radius: 16px; padding: 16px 24px; font-size: 15px; font-weight: 600; cursor: pointer; transition: transform .16s ease, opacity .16s ease; }
+  .btn:hover { transform: scale(1.01); }
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { opacity: .6; cursor: default; transform: none; }
+  .tip { font-size: 12px; color: #aeaeb2; margin-top: 24px; line-height: 1.8; }
+  .state { margin-top: 56px; font-size: 14px; color: #6e6e73; }
+  .state-error { color: #d70015; }
+  .reveal { opacity: 0; transform: translateY(16px); }
+  .reveal.in { opacity: 1; transform: none; transition: opacity .65s ease, transform .65s cubic-bezier(.22,1,.36,1); }
+  .d1.in { transition-delay: .02s; }
+  .d2.in { transition-delay: .12s; }
+  .d3.in { transition-delay: .22s; }
+  .d4.in { transition-delay: .32s; }
+  .d5.in { transition-delay: .42s; }
+  @media (min-width: 640px) { .page { padding-top: 96px; } .btn { width: auto; min-width: 260px; } }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } .reveal.in { transition: none; } * { transition: none !important; } }
+</style>
+</head>
+<body class="generative-download-page">
+<div class="generative-background" id="generative-background" aria-hidden="true"></div>
+<script type="module">
+  import { mountGenerativeBackground } from '/generative-background.js';
+  const host = document.getElementById('generative-background');
+  let dispose;
+  function start() { if (!dispose) dispose = mountGenerativeBackground(host); }
+  window.addEventListener('pagehide', () => { dispose?.(); dispose = null; });
+  window.addEventListener('pageshow', start);
+  start();
+</script>
+<main class="page" id="page" style="display:none">
+  <div class="reveal d1" data-reveal>
+    <img class="app-icon" src="/favicon-192x192.png" srcset="/favicon-192x192.png 1x, /favicon-512x512.png 2x" sizes="64px" width="64" height="64" alt="物联宝典" fetchpriority="high" decoding="async" onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src='/apple-touch-icon.png';}else if(this.dataset.fb==='1'){this.dataset.fb='2';this.src='/favicon-32x32.png';}" />
+  </div>
+  <div class="reveal d2" data-reveal>
+    <h1>物联宝典</h1>
+    <p class="sub">章节刷题 · 模拟考试 · 错题本</p>
+  </div>
+  <p class="state state-error" id="err" style="display:none"></p>
+  <div id="box" style="display:none">
+    <div class="reveal d3" data-reveal>
+      <div class="ver-line"><span class="ver" id="ver"></span><span class="size" id="size"></span></div>
+      <div class="info">
+        <div class="row"><span class="k">发布时间</span><span class="v" id="date">—</span></div>
+        <div class="row" id="dl-row" style="display:none"><span class="k">下载次数</span><span class="v" id="downloads"></span></div>
+      </div>
+    </div>
+    <div id="notes-wrap" class="reveal d4" data-reveal style="display:none">
+      <div class="notes-title">更新说明</div>
+      <p class="notes notes-clamp" id="notes"></p>
+      <button class="more" id="more" style="display:none">展开全部</button>
+    </div>
+    <div class="reveal d5" data-reveal>
+      <button class="btn" id="dl">立即下载 APK</button>
+      <p class="tip">仅支持 Android 手机 · 安装时如提示“未知来源”请允许</p>
+    </div>
+  </div>
+  <p class="state" id="empty" style="display:none">暂未发布版本，请稍后再来</p>
+</main>
+<p class="state" id="loading" style="max-width:640px;margin:72px auto;padding:0 24px">加载中…</p>
+<script>
+(function () {
+  var page = document.getElementById('page');
+  var loading = document.getElementById('loading');
+  var err = document.getElementById('err');
+  function playIn() {
+    var items = page.querySelectorAll('[data-reveal]');
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        items.forEach(function (el) { el.classList.add('in'); });
+      });
+    });
+  }
+  fetch('/api/app/version').then(function (r) { return r.json(); }).then(function (d) {
+    loading.style.display = 'none';
+    page.style.display = 'block';
+    if (!d || d.version == null) { document.getElementById('empty').style.display = 'block'; playIn(); return; }
+    document.getElementById('box').style.display = 'block';
+    document.getElementById('ver').textContent = '版本 ' + d.version;
+    var size = d.size >= 1048576 ? (d.size / 1048576).toFixed(1) + ' MB' : Math.round(d.size / 1024) + ' KB';
+    document.getElementById('size').textContent = size;
+    if (d.updatedAt) document.getElementById('date').textContent = new Date(d.updatedAt).toLocaleString('zh-CN', { hour12: false });
+    if (d.downloads > 0) {
+      document.getElementById('downloads').textContent = d.downloads + ' 次';
+      document.getElementById('dl-row').style.display = 'flex';
+    }
+    if (d.notes) {
+      var notes = document.getElementById('notes');
+      var more = document.getElementById('more');
+      notes.textContent = d.notes;
+      document.getElementById('notes-wrap').style.display = 'block';
+      if (String(d.notes).length > 180) {
+        more.style.display = 'inline';
+        more.setAttribute('aria-expanded', 'false');
+        more.onclick = function () {
+          var open = notes.classList.toggle('notes-clamp');
+          more.textContent = open ? '展开全部' : '收起';
+          more.setAttribute('aria-expanded', open ? 'false' : 'true');
+        };
+      } else {
+        notes.classList.remove('notes-clamp');
+      }
+    }
+    document.getElementById('dl').onclick = function () {
+      fetch('/api/app/version/download-count', { method: 'POST' }).catch(function () {});
+      location.href = d.downloadPath;
+    };
+    playIn();
+  }).catch(function () {
+    loading.style.display = 'none';
+    page.style.display = 'block';
+    err.textContent = '获取版本信息失败，请稍后重试';
+    err.style.display = 'block';
+    playIn();
+  });
+})();
+</script>
+</body>
+</html>

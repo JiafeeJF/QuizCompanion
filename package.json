@@ -1,0 +1,12 @@
+{
+  "name": "wuli-baodian",
+  "private": true,
+  "version": "1.0.0",
+  "description": "物联宝典 - 物联网中级工考证刷题应用",
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "dev": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "seed": "npm --prefix server run seed"
+  }
+}

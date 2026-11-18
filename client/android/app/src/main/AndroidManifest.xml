@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- App Links：考试通知邮件经 jump 域跳板（https://jump.wakaibg5.top/exam/:id）
+                 的 intent:// 直跳，以及网页版 https://{iot.,}wakaibg5.top/exams/:id。
+                 跳板(intent)不走 autoVerify（scheme intent 无需域名验证）；
+                 直链保留 autoVerify + assetlinks.json 域名验证。 -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="iot.wakaibg5.top" android:pathPrefix="/exams/" />
+                <data android:scheme="https" android:host="wakaibg5.top" android:pathPrefix="/exams/" />
+                <data android:scheme="https" android:host="iot.wakaibg5.top" android:pathPrefix="/m/" />
+            </intent-filter>
+
+            <!-- 跳板页 intent:// 唤起（scheme=wlbd，无需 assetlinks 验证）：
+                 jump.html 在 Chrome 里拼 intent://exam/:id#Intent;scheme=wlbd;package=... 发起 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="wlbd" android:host="exam" />
+                <data android:scheme="wlbd" android:host="share" />
+                <data android:scheme="wlbd" android:host="m" />
+            </intent-filter>
+
+            <!-- 跳板 https 直连兜底：jump 域本身被 autoVerify 接管时（用户设了默认打开），
+                 直接进 APP 不经过跳板页 -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="jump.wakaibg5.top" />
+            </intent-filter>
+
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+        </provider>
+    </application>
+
+    <uses-permission android:name="android.permission.INTERNET" />
+</manifest>
