@@ -2,6 +2,8 @@
 
 手机端优先的刷题 Web 应用：章节刷题 / 模拟考试 / 错题本 / 收藏 / 班级教学 / 管理后台。
 
+**Android：** [APK 打包指南（环境、后端配置、真机安装与发布签名）](docs/android-apk.md)
+
 技术栈：Node.js + Express + MongoDB（后端） / React + Vite + Tailwind CSS + Framer Motion（前端）。
 
 > 说明：解析功能已整体下线——答题、交卷、错题本、收藏、导出均不再展示解析；
